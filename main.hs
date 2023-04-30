@@ -5,30 +5,29 @@ import GHC.Types (Char)
 
 undefined = undefined
 
-data Natural = Zero | Next Natural
+data Natural = First | Next Natural
+
+data Positive = Positive Natural
 
 difference :: Natural -> Natural -> (Natural, Natural)
-difference Zero n = (Zero, n)
-difference n Zero = (n, Zero)
+difference First n = (First, n)
+difference n First = (n, First)
 difference (Next n) (Next m) = difference n m
 
 -- division by repeated subtraction
 -- the simplest form of Euclidean division
--- TODO: require positive number as divisor
-divide :: Natural -> Natural -> (Natural, Natural)
-divide a b = case difference a b of
-  (n, Zero) -> let (quotient, rest) = divide n b in (Next quotient, rest)
-  (Zero, n) -> (Zero, a)
+divide :: Natural -> Positive -> (Natural, Natural)
+divide a (Positive b) = case difference a (Next b) of
+  (n, First) -> let (quotient, rest) = divide n (Positive b) in (Next quotient, rest)
+  (First, n) -> (First, a)
 
 -- set a number into a base of given size
--- TODO: require positive number as base size
-toBase :: Natural -> Natural -> [Natural]
-toBase Zero _ = undefined
+toBase :: Positive -> Natural -> [Natural]
 -- special case for base 1
-toBase (Next Zero) Zero = []
-toBase (Next Zero) (Next n) = Zero : (toBase (Next Zero) n)
+toBase (Positive First) First = []
+toBase (Positive First) (Next n) = First : (toBase (Positive First) n)
 toBase base n = case divide n base of
-  (Zero, remainder) -> [remainder]
+  (First, remainder) -> [remainder]
   (quotient, remainder) -> remainder:(toBase base quotient)
 
 map :: (a -> b) -> [a] -> [b]
@@ -36,7 +35,7 @@ map f [] = []
 map f (x:xs) = f x : map f xs
 
 length :: [a] -> Natural
-length [] = Zero
+length [] = First
 length (x:xs) = Next (length xs)
 
 reverse :: [a] -> [a]
@@ -46,22 +45,25 @@ reverse xs = inner xs []
     inner [] result = result
     inner (x:xs) result = inner xs (x:result)
 
--- TODO: require non-empty base
+-- TODO: require non-empty base at the type level
 showInBase :: [Char] -> Natural -> [Char]
 showInBase b n = reverse (map (b !!) digits)
   where
-    digits = (toBase (length b) n)
+    digits = (toBase base n)
+    base = case length b of
+      First -> undefined
+      Next k -> Positive k
 
 -- TODO: maybe result
 (!!) :: [a] -> Natural -> a
 [] !! _ = undefined
-(x:_) !! Zero = x
+(x:_) !! First = x
 (_:xs) !! (Next n) = xs !! n
 
 -- TODO: extend to monoid addition
 (+) :: Natural -> Natural -> Natural
-Zero + n = n
-n + Zero = n
+First + n = n
+n + First = n
 n + (Next m) = (Next n) + m
 
 arabic = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' ]
