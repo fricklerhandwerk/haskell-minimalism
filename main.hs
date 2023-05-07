@@ -2,24 +2,13 @@
 
 import GHC.Show
 import GHC.Types (Char)
+import GHC.IO (IO)
+import GHC.IO.Handle (hPutChar)
+import GHC.IO.StdHandles (stdout)
+
+import Natural
 
 undefined = undefined
-
-data Natural = First | Next Natural
-
-data Positive = Positive Natural
-
-difference :: Natural -> Natural -> (Natural, Natural)
-difference First n = (First, n)
-difference n First = (n, First)
-difference (Next n) (Next m) = difference n m
-
--- division by repeated subtraction
--- the simplest form of Euclidean division
-divide :: Natural -> Positive -> (Natural, Natural)
-divide a (Positive b) = case difference a (Next b) of
-  (n, First) -> let (quotient, rest) = divide n (Positive b) in (Next quotient, rest)
-  (First, n) -> (First, a)
 
 -- set a number into a base of given size
 toBase :: Positive -> Natural -> [Natural]
@@ -88,3 +77,5 @@ newtype Arabic = Arabic Natural
 instance Show Arabic where
   show (Arabic n) = showInBase arabic n
 
+main :: IO ()
+main = hPutChar stdout '0'
