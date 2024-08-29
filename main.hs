@@ -3,8 +3,8 @@
 import GHC.Show
 import GHC.Types (Char)
 import GHC.IO (IO)
-import GHC.IO.Handle (hPutChar)
-import GHC.IO.StdHandles (stdout)
+import qualified GHC.IO.Handle as IO (hPutChar)
+import GHC.IO.StdHandles as Handle (stdout)
 
 import Natural
 
@@ -77,5 +77,14 @@ newtype Arabic = Arabic Natural
 instance Show Arabic where
   show (Arabic n) = showInBase arabic n
 
+putChar :: Char -> IO ()
+putChar = IO.hPutChar Handle.stdout
+
+putStrLn :: [Char] -> IO ()
+putStrLn [] = putChar '\n'
+putStrLn (c:cs) = do
+  putChar c
+  putStrLn cs
+
 main :: IO ()
-main = hPutChar stdout '0'
+main = putStrLn "hello world"
